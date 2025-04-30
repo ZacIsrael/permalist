@@ -1,15 +1,32 @@
 import express from "express";
 import bodyParser from "body-parser";
 
+// postgreSQL module
+import pg from "pg";
+
+// allows us to access our passwords and other sensitive variables from the .env file
+import dotenv from "dotenv";
+dotenv.config();
+
 const app = express();
 const port = 3000;
+
+const db = new pg.Client({
+  user: process.env.PG_USERNAME,
+  host: "localhost",
+  // access the "permalist" database in postgreSQL
+  database: "permalist",
+  password: process.env.PG_PASSWORD,
+  port: 5432,
+});
+db.connect();
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
 let items = [
-  { id: 1, title: "Buy milk" },
-  { id: 2, title: "Finish homework" },
+  // { id: 1, title: "Buy milk" },
+  // { id: 2, title: "Finish homework" },
 ];
 
 app.get("/", (req, res) => {
