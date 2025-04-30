@@ -53,7 +53,9 @@ app.post("/add", async (req, res) => {
   // error handling
   if (typeof item === "undefined") {
     // null check
-    console.error(`Error (\'/add\' route): Body of the request does not contain a new item.`);
+    console.error(
+      `Error (\'/add\' route): Body of the request does not contain a new item.`
+    );
   } else {
     if (item.trim().length === 0) {
       // empty string
@@ -61,21 +63,63 @@ app.post("/add", async (req, res) => {
     } else {
       // add the new item to the items table
       try {
-        const result = await db.query(`INSERT INTO ${itemsTable} (title) VALUES ($1)`, [item]);
-        // items.push({ title: item });
-      } catch(err){
-        console.error(`Error adding `, item, ` to the ${itemsTable} table: `, err.stack)
+        const result = await db.query(
+          `INSERT INTO ${itemsTable} (title) VALUES ($1)`,
+          [item]
+        );
+      } catch (err) {
+        console.error(
+          `Error adding `,
+          item,
+          ` to the ${itemsTable} table: `,
+          err.stack
+        );
       }
-      
+
       // redirect back to the default route
       res.redirect("/");
     }
   }
 });
 
-app.post("/edit", (req, res) => {});
+// route is triggered once the end user click the checkmark icon after modifying an item
+app.post("/edit", async (req, res) => {
+  console.log('\'edit\' route: req.body = ', req.body);
+  let itemId = req.body.updatedItemId;
+  let newText = req.body.updatedItemTitle;
 
-app.post("/delete", (req, res) => {});
+  if(req.body.hasOwnProperty("updatedItemId") && req.body.hasOwnProperty("updatedItemTitle")){
+    if(newText.trim().length === 0){
+      // don't update an item with an empry string
+      console.error(`Error (\'/edit\' route): Can't modify an item with an empty string.`);
+    } else {
+      // variable to store the result of the update query
+      let result;
+      try {
+        // locate the item with id = id in the database and update it
+        result = db.query(`UPDATE ${itemsTable} SET title = ($1) WHERE id = ($2)`, [newText, itemId]);
+      } catch(err){
+        console.error(`(\'/edit\' route) Cannot update item with id = ${itemId}: `, err.stack);
+      }
+      
+    }
+    // redirect to the default get route
+    res.redirect("/");
+
+  } else {
+    // for some reason, either the id, title, or both were not passed in the body of the request
+    console.error(
+      `Error (\'/edit\' route): Body of the request does not contain a new item.`
+    );
+  }
+});
+
+app.post("/delete", async (req, res) => {
+
+  console.log('\'delete\' route: req.body = ', req.body);
+
+
+});
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
