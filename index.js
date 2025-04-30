@@ -11,7 +11,7 @@ dotenv.config();
 const app = express();
 const port = 3000;
 
-const itemsTable = "items"
+const itemsTable = "items";
 
 const db = new pg.Client({
   user: process.env.PG_USERNAME,
@@ -32,9 +32,9 @@ let items = [
   // { id: 2, title: "Finish homework" },
 ];
 
-async function getAllItems (){
+async function getAllItems() {
   const result = await db.query(`SELECT * FROM ${itemsTable}`);
-  console.log('getAllItems(): result = ', result);
+  console.log("getAllItems(): result = ", result);
   return result.rows;
 }
 
@@ -47,11 +47,30 @@ app.get("/", async (req, res) => {
   });
 });
 
-
 app.post("/add", async (req, res) => {
   const item = req.body.newItem;
-  items.push({ title: item });
-  res.redirect("/");
+  console.log("item = ", item);
+  // error handling
+  if (typeof item === "undefined") {
+    // null check
+    console.error(`Error (\'/add\' route): Body of the request does not contain a new item.`);
+  } else {
+    if (item.trim().length === 0) {
+      // empty string
+      console.error(`Error (\'/add\' route): Add a new item.`);
+    } else {
+      // add the new item to the items table
+      try {
+        const result = await db.query(`INSERT INTO ${itemsTable} (title) VALUES ($1)`, [item]);
+        // items.push({ title: item });
+      } catch(err){
+        console.error(`Error adding `, item, ` to the ${itemsTable} table: `, err.stack)
+      }
+      
+      // redirect back to the default route
+      res.redirect("/");
+    }
+  }
 });
 
 app.post("/edit", (req, res) => {});
