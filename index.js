@@ -114,9 +114,35 @@ app.post("/edit", async (req, res) => {
   }
 });
 
+// route is triggered once the end user checks off the box (to the left of the item)
 app.post("/delete", async (req, res) => {
 
   console.log('\'delete\' route: req.body = ', req.body);
+  let stringId = req.body.deleteItemId;
+  // null
+  if(req.body.hasOwnProperty("deleteItemId")){
+    // convert the id into a number (it's a string by default)
+    let itemId = Number(stringId);
+
+    // delete the item with id = itemId from the items table
+    // variable that stores the result of the query
+    let result;
+    try {
+      result = db.query(`DELETE FROM ${itemsTable} WHERE id = ($1)`, [itemId]);
+
+    } catch (err){
+      console.error(`(\'/delete\' route) Cannot delete item with id = ${itemId}: `, err.stack)
+    }
+
+    // redirect to the default GET route
+    res.redirect("/");
+
+  } else {
+    // for some reason, the id of the item was not passed in the body of the request
+    console.error(
+      `Error (\'/delete\' route): Body of the request does not contain an id for an item.`
+    );
+  }
 
 
 });
